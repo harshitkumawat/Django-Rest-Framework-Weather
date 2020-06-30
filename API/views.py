@@ -7,7 +7,7 @@ from rest_framework import status
 from .models import *
 from rest_framework import viewsets
 from API.serializers import *
-from django.db.models import Avg
+from django.db.models import Avg, F
 
 
 '''class CityViewSet(viewsets.ModelViewSet):
@@ -42,12 +42,16 @@ def YearView(request):
 @csrf_exempt
 def AverageTemperatureByYear(request):
     if request.method == 'GET':
-        queryset = Temperature.objects.values('Year').annotate(Avg('temperature'))
+        queryset = Temperature.objects.values('Year').annotate(y = Avg('temperature'),name = F('Year')).values('name','y')
         Temp_Serializer = AverageTemperatureSerializer(queryset, many=True)
         return JsonResponse(Temp_Serializer.data, safe=False)
     elif request.method == 'POST':
         Temp_data = JSONParser().parse(request)
-        queryset = Temperature.objects.values('Year').annotate(Avg('temperature')).filter(Year=Temp_data['Year'])
+        if int(Temp_data['Year'])==-1:
+            queryset = Temperature.objects.values('Year','ID').annotate(y = Avg('temperature'),name = F('Year')).filter(ID=Temp_data['City_Name']).values('name','y')
+            print(queryset)
+        else:
+            queryset = Temperature.objects.values('Year').annotate(y = Avg('temperature'),name = F('Year')).filter(Year=Temp_data['Year']).values('name','y')
         Temp_Serializer = AverageTemperatureSerializer(queryset, many=True)
         return JsonResponse(Temp_Serializer.data, safe=False)
     
@@ -59,15 +63,17 @@ def AverageTemperatureByYear(request):
 @csrf_exempt
 def AverageTemperatureByCity(request):
     if request.method == 'GET':
-        queryset = Temperature.objects.values('ID').annotate(Avg('temperature'))
+        queryset = Temperature.objects.values('ID').annotate(y = Avg('temperature'),name = F('ID')).values('name','y')
         City_Serializer =  AverageTemperatureByCitySerializer(queryset, many=True)
         return JsonResponse(City_Serializer.data, safe=False)
     elif request.method == 'POST':
         Temp_data = JSONParser().parse(request)
-        if(int(Temp_data['Year'])==0):
-            queryset = Temperature.objects.values('ID').annotate(Avg('temperature')).filter(ID=Temp_data['City_Name'])
+        if int(Temp_data['City_Name'])==0:
+            queryset = Temperature.objects.values('Year','ID').annotate(y = Avg('temperature'),name = F('ID')).filter(Year=int(Temp_data['Year'])).values('name','y')
+        elif(int(Temp_data['Year'])==0):
+            queryset = Temperature.objects.values('ID').annotate(y = Avg('temperature'),name = F('ID')).filter(ID=Temp_data['City_Name']).values('name','y')
         else:
-            queryset = Temperature.objects.filter(ID = Temp_data['City_Name'],Year = Temp_data['Year']).values('ID').annotate(Avg('temperature'))
+            queryset = Temperature.objects.filter(ID = Temp_data['City_Name'],Year = Temp_data['Year']).values('ID').annotate(y = Avg('temperature'),name = F('ID')).values('name','y')
         Temp_Serializer =  AverageTemperatureByCitySerializer(queryset, many=True)
         return JsonResponse(Temp_Serializer.data, safe=False)
     

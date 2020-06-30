@@ -14,15 +14,16 @@ class TemperatureSerializer(serializers.ModelSerializer):
         fields = ['Year']
 
 class AverageTemperatureSerializer(serializers.ModelSerializer):
-    temperature__avg = serializers.DecimalField(max_digits=5, decimal_places=2)
+    y = serializers.DecimalField(max_digits=5, decimal_places=2)
+    name = serializers.CharField()
     class Meta:
         model = Temperature
-        fields = ['Year','temperature__avg']
+        fields = ['name','y']
 
 class AverageTemperatureByCitySerializer(serializers.Serializer):
-    temperature__avg = serializers.DecimalField(max_digits=5, decimal_places=2)
-    ID = serializers.StringRelatedField(read_only = True)
+    y = serializers.DecimalField(max_digits=5, decimal_places=2)
+    name = serializers.StringRelatedField(read_only = True)
 
     class Meta:
         model = Temperature
-        fields = ['ID', 'temperature__avg']
+        fields = ['name', 'y']
